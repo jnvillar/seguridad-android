@@ -19,7 +19,5 @@ class SmsActivity : AppCompatActivity() {
         mRecyclerView.layoutManager = LinearLayoutManager(this)
         mAdapter.SmsAdapter(allSms, this)
         mRecyclerView.adapter = mAdapter
-
-
     }
 }
