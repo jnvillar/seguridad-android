@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.fcen.seguridad.Sms.SmsHandler
 import java.util.jar.Manifest
 import android.content.Intent
+import com.fcen.seguridad.Location.LocationActivity
 import com.fcen.seguridad.Sms.SmsActivity
 
 
@@ -29,11 +30,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        val fab: FloatingActionButton = findViewById(R.id.fab)
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
         val toggle = ActionBarDrawerToggle(
@@ -54,22 +50,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
         Log.d("NAVIGATION", "click on navigation")
@@ -85,6 +65,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             R.id.nav_camera -> {
                 Log.d("NAVIGATION", "implement this")
+            }
+            R.id.nav_location -> {
+                Log.d("NAVIGATION", "click on location")
+                val hasAccessFineLocationPermissions = checkPermissions(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                if (hasAccessFineLocationPermissions == false) {
+                    return true
+                }
+                val hasAccessCoarseLocationPermissions = checkPermissions(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                if (hasAccessCoarseLocationPermissions == false) {
+                    return true
+                }
+                Log.d("NAVIGATION", "creating location activity")
+                intent = Intent(this, LocationActivity::class.java)
+                startActivity(intent)
             }
         }
         Log.d("NAVIGATION", "navbar action finished")
