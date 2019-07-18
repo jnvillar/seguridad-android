@@ -3,8 +3,6 @@ package com.fcen.seguridad
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import androidx.core.view.GravityCompat
 import androidx.appcompat.app.ActionBarDrawerToggle
 import android.view.MenuItem
@@ -12,15 +10,12 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import android.view.Menu
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.fcen.seguridad.Sms.SmsHandler
-import java.util.jar.Manifest
 import android.content.Intent
+import com.fcen.seguridad.Camera.CameraActivity
 import com.fcen.seguridad.Location.LocationActivity
 import com.fcen.seguridad.Sms.SmsActivity
-
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -64,7 +59,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 startActivity(intent)
             }
             R.id.nav_camera -> {
-                Log.d("NAVIGATION", "implement this")
+                Log.d("NAVIGATION", "camera")
+                val hasCameraP = checkPermissions(android.Manifest.permission.CAMERA)
+                if (hasCameraP == false) {
+                    return true
+                }
+                val hasWriteP = checkPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                if (hasWriteP == false) {
+                    return true
+                }
+                val hasReadP = checkPermissions(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                if (hasReadP == false) {
+                    return true
+                }
+                Log.d("NAVIGATION", "creating camera activity")
+                intent = Intent(this, CameraActivity::class.java)
+                startActivity(intent)
             }
             R.id.nav_location -> {
                 Log.d("NAVIGATION", "click on location")
