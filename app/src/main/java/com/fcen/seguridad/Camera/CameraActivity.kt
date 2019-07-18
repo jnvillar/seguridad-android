@@ -1,58 +1,175 @@
 package com.fcen.seguridad.Camera
 
+import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.androidhiddencamera.HiddenCameraActivity
-import android.widget.Toast
+import android.os.Environment
 import androidx.core.app.ActivityCompat
-import com.androidhiddencamera.CameraError
-import com.androidhiddencamera.HiddenCameraUtils
-import com.androidhiddencamera.config.CameraRotation
-import com.androidhiddencamera.config.CameraImageFormat
-import com.androidhiddencamera.config.CameraResolution
-import com.androidhiddencamera.config.CameraFacing
-import com.androidhiddencamera.CameraConfig
+import androidx.core.content.ContextCompat
+import io.fotoapparat.Fotoapparat
+import io.fotoapparat.configuration.CameraConfiguration
+import io.fotoapparat.log.logcat
+import io.fotoapparat.log.loggers
+import io.fotoapparat.parameter.ScaleType
+import io.fotoapparat.selector.*
+import io.fotoapparat.view.CameraView
+import java.io.File
+import com.fcen.seguridad.R
+import kotlinx.android.synthetic.main.activity_camera.*
+import java.text.SimpleDateFormat
+import java.util.*
 
-class CameraActivity : HiddenCameraActivity() {
+
+class CameraActivity : AppCompatActivity() {
+
+    var fotoapparat: Fotoapparat? = null
+    var fotoapparatState: FotoapparatState? = null
+    var cameraStatus: CameraState? = null
+    var flashState: FlashState? = null
+
+    val permissions = arrayOf(
+        android.Manifest.permission.CAMERA,
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val mCameraConfig = CameraConfig()
-            .getBuilder(this)
-            .setCameraFacing(CameraFacing.FRONT_FACING_CAMERA)
-            .setCameraResolution(CameraResolution.MEDIUM_RESOLUTION)
-            .setImageFormat(CameraImageFormat.FORMAT_JPEG)
-            .setImageRotation(CameraRotation.ROTATION_270)
-            .build()
+        setContentView(R.layout.activity_camera)
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            //Start camera preview
-            startCamera(mCameraConfig);
+        createFotoapparat()
+
+        cameraStatus = CameraState.BACK
+        flashState = FlashState.OFF
+        fotoapparatState = FotoapparatState.OFF
+
+        fab_camera.setOnClickListener {
+            takePhoto()
+        }
+
+        fab_switch_camera.setOnClickListener {
+            switchCamera()
+        }
+
+        fab_flash.setOnClickListener {
+            changeFlashState()
         }
     }
 
-    override fun onCameraError(@CameraError.CameraErrorCodes errorCode: Int) {
-        when (errorCode) {
-            CameraError.ERROR_CAMERA_OPEN_FAILED -> {
+    private fun createFotoapparat() {
+        val cameraView = findViewById<CameraView>(R.id.camera_view)
+
+        fotoapparat = Fotoapparat(
+            context = this,
+            view = cameraView,
+            scaleType = ScaleType.CenterCrop,
+            lensPosition = back(),
+            logger = loggers(
+                logcat()
+            ),
+            cameraErrorCallback = { error ->
+                println("Recorder errors: $error")
             }
-            CameraError.ERROR_IMAGE_WRITE_FAILED -> {
-            }
-            CameraError.ERROR_CAMERA_PERMISSION_NOT_AVAILABLE -> {
-            }
-            CameraError.ERROR_DOES_NOT_HAVE_OVERDRAW_PERMISSION ->
-                //Display information dialog to the user with steps to grant "Draw over other app"
-                //permission for the app.
-                HiddenCameraUtils.openDrawOverPermissionSetting(this)
-            CameraError.ERROR_DOES_NOT_HAVE_FRONT_CAMERA -> Toast.makeText(
-                this,
-                "Your device does not have front camera.",
-                Toast.LENGTH_LONG
-            ).show()
-        }//Camera open failed. Probably because another application
-        //is using the camera
-        //Image write failed. Please check if you have provided WRITE_EXTERNAL_STORAGE permission
-        //camera permission is not available
-        //Ask for the camra permission before initializing it.
+        )
     }
+
+    private fun changeFlashState() {
+        fotoapparat?.updateConfiguration(
+            CameraConfiguration(
+                flashMode = if (flashState == FlashState.TORCH) off() else torch()
+            )
+        )
+
+        if (flashState == FlashState.TORCH) flashState = FlashState.OFF
+        else flashState = FlashState.TORCH
+    }
+
+    private fun switchCamera() {
+        fotoapparat?.switchTo(
+            lensPosition = if (cameraStatus == CameraState.BACK) front() else back(),
+            cameraConfiguration = CameraConfiguration()
+        )
+
+        if (cameraStatus == CameraState.BACK) cameraStatus = CameraState.FRONT
+        else cameraStatus = CameraState.BACK
+    }
+
+    private fun takePhoto() {
+        val timeStampFormat = SimpleDateFormat("yyyyMMddHHmmssSS")
+        val myDate = Date()
+        val date = timeStampFormat.format(myDate)
+        val directoryName = "Pictures/Test/"
+
+        val folder = File((Environment.getExternalStorageDirectory()).toString() + File.separator + directoryName)
+        if (!folder.exists()) { folder.mkdirs() }
+
+        val filename = directoryName + date + ".jpg"
+        val sd = Environment.getExternalStorageDirectory()
+        val dest = File(sd, filename)
+
+        if (hasNoPermissions()) {
+            requestPermission()
+        } else {
+            fotoapparat
+                ?.takePicture()
+                ?.saveToFile(dest)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (hasNoPermissions()) {
+            requestPermission()
+        } else {
+            fotoapparat?.start()
+            fotoapparatState = FotoapparatState.ON
+        }
+    }
+
+    private fun hasNoPermissions(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) != PackageManager.PERMISSION_GRANTED
+    }
+
+    fun requestPermission() {
+        ActivityCompat.requestPermissions(this, permissions, 0)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        fotoapparat?.stop()
+        FotoapparatState.OFF
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!hasNoPermissions() && fotoapparatState == FotoapparatState.OFF) {
+            val intent = Intent(baseContext, CameraActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+    }
+
 }
 
+enum class CameraState {
+    FRONT, BACK
+}
+
+enum class FlashState {
+    TORCH, OFF
+}
+
+enum class FotoapparatState {
+    ON, OFF
+}
