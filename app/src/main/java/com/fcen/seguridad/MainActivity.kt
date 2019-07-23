@@ -13,6 +13,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.content.Intent
+import com.fcen.seguridad.BaseService.BaseService
 import com.fcen.seguridad.Camera.CameraActivity
 import com.fcen.seguridad.Location.LocationActivity
 import com.fcen.seguridad.Sms.SmsActivity
@@ -34,6 +35,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         navView.setNavigationItemSelectedListener(this)
+        Log.d("NAVIGATION", "antes del service")
+        BaseService.scheduleWorker()
+        Log.d("NAVIGATION", "despues del service")
     }
 
     override fun onBackPressed() {
