@@ -38,6 +38,5 @@ class LocationActivity : FragmentActivity(), OnMapReadyCallback {
                 mMap!!.moveCamera(CameraUpdateFactory.newLatLng(lastLocation))
             }
         }
-
     }
 }

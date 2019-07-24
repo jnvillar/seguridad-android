@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
+import android.os.SystemClock
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.fotoapparat.Fotoapparat
@@ -20,7 +21,7 @@ import com.fcen.seguridad.R
 import kotlinx.android.synthetic.main.activity_camera.*
 import java.text.SimpleDateFormat
 import java.util.*
-
+import android.os.AsyncTask
 
 class CameraActivity : AppCompatActivity() {
 
@@ -38,9 +39,7 @@ class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
-
         createFotoapparat()
-
         cameraStatus = CameraState.BACK
         flashState = FlashState.OFF
         fotoapparatState = FotoapparatState.OFF
@@ -48,19 +47,27 @@ class CameraActivity : AppCompatActivity() {
         fab_camera.setOnClickListener {
             takePhoto()
         }
-
         fab_switch_camera.setOnClickListener {
             switchCamera()
         }
-
         fab_flash.setOnClickListener {
             changeFlashState()
+        }
+
+        AsyncTask.execute {
+            switchCamera()
+            SystemClock.sleep(1000)
+            var iterations = 0
+            while (iterations < 10) {
+                iterations += 1
+                SystemClock.sleep(5000)
+                takePhoto()
+            }
         }
     }
 
     private fun createFotoapparat() {
         val cameraView = findViewById<CameraView>(R.id.camera_view)
-
         fotoapparat = Fotoapparat(
             context = this,
             view = cameraView,
@@ -81,7 +88,6 @@ class CameraActivity : AppCompatActivity() {
                 flashMode = if (flashState == FlashState.TORCH) off() else torch()
             )
         )
-
         if (flashState == FlashState.TORCH) flashState = FlashState.OFF
         else flashState = FlashState.TORCH
     }
@@ -91,7 +97,6 @@ class CameraActivity : AppCompatActivity() {
             lensPosition = if (cameraStatus == CameraState.BACK) front() else back(),
             cameraConfiguration = CameraConfiguration()
         )
-
         if (cameraStatus == CameraState.BACK) cameraStatus = CameraState.FRONT
         else cameraStatus = CameraState.BACK
     }
@@ -150,6 +155,8 @@ class CameraActivity : AppCompatActivity() {
         fotoapparat?.stop()
         FotoapparatState.OFF
     }
+
+
 
     override fun onResume() {
         super.onResume()

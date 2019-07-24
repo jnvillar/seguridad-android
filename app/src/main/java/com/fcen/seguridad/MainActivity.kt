@@ -13,10 +13,15 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.content.Intent
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.Volley
 import com.fcen.seguridad.BaseService.BaseService
 import com.fcen.seguridad.Camera.CameraActivity
 import com.fcen.seguridad.Location.LocationActivity
 import com.fcen.seguridad.Sms.SmsActivity
+import com.android.volley.toolbox.StringRequest
+
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
