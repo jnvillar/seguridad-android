@@ -18,6 +18,11 @@
                 android:id="@+id/nav_location"
                 android:icon="@drawable/ic_menu_share"
                 android:title="Ubicación"/>
+
+        <item
+                android:id="@+id/nav_log"
+                android:icon="@drawable/log"
+                android:title="Log Ubicacion"/>
     </group>
 
 </menu>
