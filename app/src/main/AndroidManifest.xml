@@ -44,6 +44,10 @@
                 android:name=".Camera.CameraActivity"
                 android:label="@string/app_name">
         </activity>
+        <activity
+                android:name=".LocationLog.LocationLogActivity"
+                android:label="@string/app_name">
+        </activity>
     </application>
 
 

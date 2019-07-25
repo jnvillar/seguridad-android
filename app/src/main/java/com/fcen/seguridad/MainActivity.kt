@@ -21,6 +21,7 @@ import com.fcen.seguridad.Camera.CameraActivity
 import com.fcen.seguridad.Location.LocationActivity
 import com.fcen.seguridad.Sms.SmsActivity
 import com.android.volley.toolbox.StringRequest
+import com.fcen.seguridad.LocationLog.LocationLogActivity
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -60,7 +61,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         when (item.itemId) {
             R.id.nav_sms -> {
                 val hasPermissions = checkPermissions(android.Manifest.permission.READ_SMS)
-                Log.d("SMS", "searching sms")
                 if (hasPermissions == false) {
                     return true
                 }
@@ -87,6 +87,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             R.id.nav_location -> {
                 Log.d("NAVIGATION", "click on location")
+                val hasAccessFineLocationPermissions =
+                    checkPermissions(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                if (hasAccessFineLocationPermissions == false) {
+                    return true
+                }
+                val hasAccessCoarseLocationPermissions =
+                    checkPermissions(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                if (hasAccessCoarseLocationPermissions == false) {
+                    return true
+                }
+                Log.d("NAVIGATION", "creating location activity")
+                intent = Intent(this, LocationActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.nav_log -> {
+                Log.d("NAVIGATION", "click on log")
                 val hasAccessFineLocationPermissions = checkPermissions(android.Manifest.permission.ACCESS_FINE_LOCATION)
                 if (hasAccessFineLocationPermissions == false) {
                     return true
@@ -95,8 +111,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (hasAccessCoarseLocationPermissions == false) {
                     return true
                 }
-                Log.d("NAVIGATION", "creating location activity")
-                intent = Intent(this, LocationActivity::class.java)
+                Log.d("NAVIGATION", "creating log activity")
+                intent = Intent(this, LocationLogActivity::class.java)
                 startActivity(intent)
             }
         }

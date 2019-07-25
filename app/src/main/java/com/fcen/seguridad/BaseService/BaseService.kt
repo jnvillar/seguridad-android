@@ -37,13 +37,23 @@ class BaseService(context: Context, workerParams: WorkerParameters) : Worker(con
         return Result.success()
     }
 
-    private fun write(data: String, date: String){
+    private fun write(data:String) {
         val path = this.applicationContext.getExternalFilesDir(null)
         val letDirectory = File(path, "LET")
-        Log.d("SERVICE", "[${date}]: trying to write file ${path}")
         letDirectory.mkdirs()
+        val mFile = File(letDirectory, "locations.txt")
+        if (!mFile.exists()){
+            mFile.appendText(data)
+            return
+        }
+        val lines = mFile.readLines()
+        val linesToWrite = arrayOf(data) + lines
+        mFile.delete()
+
         val file = File(letDirectory, "locations.txt")
-        file.appendText(data)
+        linesToWrite.forEach { line ->
+            file.appendText(line)
+        }
     }
 
     fun logLocation(date: String) {
@@ -54,7 +64,7 @@ class BaseService(context: Context, workerParams: WorkerParameters) : Worker(con
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     val lastLocation = LatLng(location.latitude, location.longitude)
-                    write(lastLocation.toString(), date)
+                    write("[${date}]: lat:${lastLocation.latitude} lng:${lastLocation.longitude} \n")
                     Log.d("SERVICE", "[${date}]: last location ${lastLocation}.")
                 }
             }
